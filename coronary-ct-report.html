@@ -8,7 +8,7 @@
 body{
     font-family:sans-serif;
     margin:20px;
-    max-width:800px;
+    max-width:900px;
 }
 
 .section{
@@ -31,6 +31,46 @@ textarea{
 
 button{
     margin:5px;
+    padding:8px 12px;
+}
+
+.numeric-pad {
+    display:grid;
+    grid-template-columns: repeat(3, 60px);
+    gap:5px;
+    margin-top:10px;
+}
+
+.numeric-pad button {
+    width:60px;
+    height:50px;
+    font-size:16px;
+    margin:0;
+    padding:0;
+}
+
+.numeric-pad button.delete {
+    grid-column: span 3;
+}
+
+.numeric-input-container {
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.numeric-input {
+    font-size:18px;
+    min-width:60px;
+    padding:5px;
+    border:1px solid #ccc;
+    text-align:center;
+}
+
+.input-label {
+    display:inline-block;
+    width:60px;
+    font-weight:bold;
 }
 </style>
 </head>
@@ -65,22 +105,48 @@ button{
     <input type="number" id="volume" value="60"> cc
 </div>
 
+<hr>
+
+<h3>撮影時条件</h3>
+
 <div class="section">
     <label>心拍</label>
-    <input type="number" id="heartRate1" placeholder="xx"> - <input type="number" id="heartRate2" placeholder="yy"> bpm
+    <div class="numeric-input-container">
+        <span class="input-label">開始:</span>
+        <input type="text" id="heartRate1" class="numeric-input" readonly>
+        <span>-</span>
+        <span class="input-label">終了:</span>
+        <input type="text" id="heartRate2" class="numeric-input" readonly>
+        <span>bpm</span>
+    </div>
+    <div class="numeric-pad" id="heartRatePad1"></div>
 </div>
 
 <div class="section">
     <label>βブロッカー</label>
-    <select id="betaBlocker">
-        <option>あり</option>
+    <select id="betaBlocker" onchange="toggleBetaBlockerDetails()">
         <option>なし</option>
+        <option>あり</option>
     </select>
-    <div id="betaBlockerDetails" style="margin-top:10px;">
-        <label>使用前 BP:</label>
-        <input type="number" id="bpPre1" placeholder="収縮"> / <input type="number" id="bpPre2" placeholder="拡張"><br>
-        <label>使用後 BP:</label>
-        <input type="number" id="bpPost1" placeholder="収縮"> / <input type="number" id="bpPost2" placeholder="拡張">
+    <div id="betaBlockerDetails" style="display:none; margin-top:15px;">
+        <div style="margin-bottom:10px;">
+            <label>使用前BP:</label>
+            <div class="numeric-input-container">
+                <input type="text" id="bpPre1" class="numeric-input" readonly>
+                <span>/</span>
+                <input type="text" id="bpPre2" class="numeric-input" readonly>
+            </div>
+            <div class="numeric-pad" id="bpPrePad"></div>
+        </div>
+        <div>
+            <label>使用後BP:</label>
+            <div class="numeric-input-container">
+                <input type="text" id="bpPost1" class="numeric-input" readonly>
+                <span>/</span>
+                <input type="text" id="bpPost2" class="numeric-input" readonly>
+            </div>
+            <div class="numeric-pad" id="bpPostPad"></div>
+        </div>
     </div>
 </div>
 
@@ -127,6 +193,54 @@ button{
 
 <script>
 
+let currentInputField = null;
+
+function createNumericPad(containerId, targetFieldId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    
+    for(let i = 1; i <= 9; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.onclick = () => appendToInput(targetFieldId, i);
+        container.appendChild(btn);
+    }
+    
+    const zeroBtn = document.createElement('button');
+    zeroBtn.textContent = '0';
+    zeroBtn.onclick = () => appendToInput(targetFieldId, 0);
+    container.appendChild(zeroBtn);
+    
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = 'クリア';
+    clearBtn.className = 'delete';
+    clearBtn.onclick = () => clearInput(targetFieldId);
+    container.appendChild(clearBtn);
+}
+
+function appendToInput(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    field.value = field.value + value;
+}
+
+function clearInput(fieldId) {
+    document.getElementById(fieldId).value = '';
+}
+
+function toggleBetaBlockerDetails() {
+    const betaBlocker = document.getElementById("betaBlocker").value;
+    const details = document.getElementById("betaBlockerDetails");
+    if(betaBlocker === "あり") {
+        details.style.display = "block";
+        if(document.getElementById("bpPrePad").children.length === 0) {
+            createNumericPad("bpPrePad", "bpPre1");
+            createNumericPad("bpPostPad", "bpPost1");
+        }
+    } else {
+        details.style.display = "none";
+    }
+}
+
 function addStenosis(){
 
     const container = document.getElementById("stenosisContainer");
@@ -168,34 +282,41 @@ function addStenosis(){
 
 addStenosis();
 
+// 初期化：心拍数パッド作成
+createNumericPad("heartRatePad1", "heartRate1");
+
 function generateReport(){
 
     let text = "";
 
-    text += "所見【" + document.getElementById("scanner").value + "】\n\n";
+    text += "CT所見\n\n";
 
     text += "撮影時\n";
 
     const hr1 = document.getElementById("heartRate1").value;
     const hr2 = document.getElementById("heartRate2").value;
+    text += "　心拍　　　　　";
     if(hr1 || hr2) {
-        text += "　心拍　　　　" + (hr1 || "xx") + "-" + (hr2 || "yy") + " bpm\n";
+        text += (hr1 || "xx") + "-" + (hr2 || "yy") + " bpm\n";
+    } else {
+        text += "xx-yy bpm\n";
     }
 
     const betaBlocker = document.getElementById("betaBlocker").value;
-    text += "　βブロッカー　" + betaBlocker;
+    text += "　βブロッカー　　";
     if(betaBlocker === "あり") {
         const bpPre1 = document.getElementById("bpPre1").value || "preaaa";
         const bpPre2 = document.getElementById("bpPre2").value || "bb";
         const bpPost1 = document.getElementById("bpPost1").value || "postccc";
         const bpPost2 = document.getElementById("bpPost2").value || "ddd";
-        text += "(BP:" + bpPre1 + "/" + bpPre2 + ", post" + bpPost1 + "/" + bpPost2 + ")";
+        text += "あり(BP:" + bpPre1 + "/" + bpPre2 + ", post:" + bpPost1 + "/" + bpPost2 + ")\n";
+    } else {
+        text += "なし\n";
     }
-    text += "\n";
 
-    text += "　呼吸止め　　" + document.getElementById("breath").value + "\n";
-    text += "　使用造影剤　" + document.getElementById("contrast").value + "\n";
-    text += "　造影剤使用量　" + document.getElementById("volume").value + " CC\n\n";
+    text += "　呼吸止め　　　　" + document.getElementById("breath").value + "\n";
+    text += "　使用造影剤　　　" + document.getElementById("contrast").value + "\n";
+    text += "　造影剤使用量　　" + document.getElementById("volume").value + " CC\n\n";
 
     const segments = document.querySelectorAll(".stenosis-row");
 
