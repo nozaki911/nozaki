@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>冠動脈CTテンプレート</title>
+
+<style>
+body{
+    font-family:sans-serif;
+    margin:20px;
+    max-width:800px;
+}
+
+.section{
+    margin-bottom:20px;
+}
+
+label{
+    display:inline-block;
+    width:100px;
+}
+
+.stenosis-row{
+    margin-bottom:5px;
+}
+
+textarea{
+    width:100%;
+    height:300px;
+}
+
+button{
+    margin:5px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>冠動脈CTレポート作成</h2>
+
+<div class="section">
+    <label>CT装置</label>
+    <select id="scanner">
+        <option>iCT</option>
+        <option>IQon</option>
+        <option>7500</option>
+    </select>
+</div>
+
+<div class="section">
+    <label>造影剤</label>
+    <select id="contrast">
+        <option>オプチレイ</option>
+        <option>イオパミロン</option>
+        <option>イオプロミド</option>
+        <option>イオパミドール</option>
+        <option>オムニパーク</option>
+        <option>イオメロン</option>
+    </select>
+</div>
+
+<div class="section">
+    <label>造影剤量</label>
+    <input type="number" id="volume" value="60"> cc
+</div>
+
+<div class="section">
+    <label>心拍</label>
+    <input type="number" id="heartRate1" placeholder="xx"> - <input type="number" id="heartRate2" placeholder="yy"> bpm
+</div>
+
+<div class="section">
+    <label>βブロッカー</label>
+    <select id="betaBlocker">
+        <option>あり</option>
+        <option>なし</option>
+    </select>
+    <div id="betaBlockerDetails" style="margin-top:10px;">
+        <label>使用前 BP:</label>
+        <input type="number" id="bpPre1" placeholder="収縮"> / <input type="number" id="bpPre2" placeholder="拡張"><br>
+        <label>使用後 BP:</label>
+        <input type="number" id="bpPost1" placeholder="収縮"> / <input type="number" id="bpPost2" placeholder="拡張">
+    </div>
+</div>
+
+<div class="section">
+    <label>呼吸止め</label>
+    <select id="breath">
+        <option>可</option>
+        <option>不良</option>
+        <option>不可</option>
+    </select>
+</div>
+
+<hr>
+
+<h3>冠動脈狭窄</h3>
+
+<div id="stenosisContainer"></div>
+
+<button onclick="addStenosis()">＋狭窄追加</button>
+
+<hr>
+
+<h3>その他所見</h3>
+
+<label><input type="checkbox" value="肝嚢胞">肝嚢胞</label><br>
+<label><input type="checkbox" value="腎嚢胞">腎嚢胞</label><br>
+<label><input type="checkbox" value="脂肪肝">脂肪肝</label><br>
+<label><input type="checkbox" value="胆石">胆石</label><br>
+<label><input type="checkbox" value="胸水">胸水</label><br>
+
+<hr>
+
+<div class="section">
+    <label>担当者</label>
+    <input type="text" id="operator" value="">
+</div>
+
+<button onclick="generateReport()">文章生成</button>
+<button onclick="copyReport()">コピー</button>
+
+<hr>
+
+<textarea id="output"></textarea>
+
+<script>
+
+function addStenosis(){
+
+    const container = document.getElementById("stenosisContainer");
+
+    const row = document.createElement("div");
+    row.className = "stenosis-row";
+
+    row.innerHTML = `
+        <select class="segment">
+            <option>#1</option>
+            <option>#2</option>
+            <option>#3</option>
+            <option>#4</option>
+            <option>#5</option>
+            <option>#6</option>
+            <option>#7</option>
+            <option>#8</option>
+            <option>#9</option>
+            <option>#10</option>
+            <option>#11</option>
+            <option>#12</option>
+            <option>#13</option>
+            <option>#14</option>
+            <option>#15</option>
+        </select>
+
+        <select class="rate">
+            <option>25%</option>
+            <option>50%</option>
+            <option>75%</option>
+            <option>90%</option>
+        </select>
+
+        <button onclick="this.parentElement.remove()">削除</button>
+    `;
+
+    container.appendChild(row);
+}
+
+addStenosis();
+
+function generateReport(){
+
+    let text = "";
+
+    text += "所見【" + document.getElementById("scanner").value + "】\n\n";
+
+    text += "撮影時\n";
+
+    const hr1 = document.getElementById("heartRate1").value;
+    const hr2 = document.getElementById("heartRate2").value;
+    if(hr1 || hr2) {
+        text += "　心拍　　　　" + (hr1 || "xx") + "-" + (hr2 || "yy") + " bpm\n";
+    }
+
+    const betaBlocker = document.getElementById("betaBlocker").value;
+    text += "　βブロッカー　" + betaBlocker;
+    if(betaBlocker === "あり") {
+        const bpPre1 = document.getElementById("bpPre1").value || "preaaa";
+        const bpPre2 = document.getElementById("bpPre2").value || "bb";
+        const bpPost1 = document.getElementById("bpPost1").value || "postccc";
+        const bpPost2 = document.getElementById("bpPost2").value || "ddd";
+        text += "(BP:" + bpPre1 + "/" + bpPre2 + ", post" + bpPost1 + "/" + bpPost2 + ")";
+    }
+    text += "\n";
+
+    text += "　呼吸止め　　" + document.getElementById("breath").value + "\n";
+    text += "　使用造影剤　" + document.getElementById("contrast").value + "\n";
+    text += "　造影剤使用量　" + document.getElementById("volume").value + " CC\n\n";
+
+    const segments = document.querySelectorAll(".stenosis-row");
+
+    if(segments.length > 0){
+
+        text += "■冠動脈\n\n";
+
+        segments.forEach(row => {
+
+            const seg = row.querySelector(".segment").value;
+            const rate = row.querySelector(".rate").value;
+
+            text += seg + ":" + rate + "\n\n";
+
+        });
+
+        text += "程度の狭窄が疑われます\n\n";
+    }
+
+    const findings = document.querySelectorAll(
+        'input[type="checkbox"]:checked'
+    );
+
+    findings.forEach(item=>{
+        text += "　" + item.value + "\n";
+    });
+
+    if(findings.length > 0){
+        text += "\n";
+    }
+
+    const operator = document.getElementById("operator").value.trim();
+
+    if(operator){
+        text += "-----------------\n";
+        text += operator + " 処理";
+    }
+
+    document.getElementById("output").value = text;
+}
+
+function copyReport(){
+
+    const output = document.getElementById("output");
+
+    output.select();
+    navigator.clipboard.writeText(output.value);
+
+    alert("コピーしました");
+}
+
+</script>
+
+</body>
+</html>
