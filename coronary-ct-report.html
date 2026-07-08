@@ -8,7 +8,7 @@
 body{
     font-family:sans-serif;
     margin:20px;
-    max-width:900px;
+    max-width:1200px;
 }
 
 .section{
@@ -36,21 +36,21 @@ button{
 
 .numeric-pad {
     display:grid;
-    grid-template-columns: repeat(3, 60px);
-    gap:5px;
-    margin-top:10px;
+    grid-template-columns: repeat(3, 45px);
+    gap:3px;
 }
 
 .numeric-pad button {
-    width:60px;
-    height:50px;
-    font-size:16px;
+    width:45px;
+    height:38px;
+    font-size:14px;
     margin:0;
     padding:0;
 }
 
 .numeric-pad button.delete {
     grid-column: span 3;
+    font-size:12px;
 }
 
 .numeric-input-container {
@@ -71,6 +71,90 @@ button{
     display:inline-block;
     width:60px;
     font-weight:bold;
+}
+
+/* 造影剤量セクション */
+.volume-section {
+    display:grid;
+    grid-template-columns: 1fr auto;
+    gap:20px;
+    align-items:start;
+    margin-bottom:30px;
+}
+
+/* 心拍セクション */
+.heartrate-section {
+    display:grid;
+    grid-template-columns: 1fr auto auto;
+    gap:20px;
+    align-items:start;
+    margin-bottom:30px;
+}
+
+.heartrate-input {
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.heartrate-pads {
+    display:grid;
+    grid-template-columns: auto auto;
+    gap:15px;
+}
+
+.heartrate-pad-label {
+    font-size:12px;
+    font-weight:bold;
+    color:#666;
+}
+
+/* 血圧セクション */
+.bp-section {
+    display:grid;
+    grid-template-columns: auto 1fr;
+    gap:20px;
+}
+
+.bp-label {
+    display:flex;
+    align-items:center;
+    font-weight:bold;
+}
+
+.bp-content {
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.bp-row {
+    display:grid;
+    grid-template-columns: auto auto;
+    gap:20px;
+    align-items:start;
+}
+
+.bp-input-group {
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.bp-input-label {
+    font-size:12px;
+    font-weight:bold;
+}
+
+.bp-pads {
+    display:grid;
+    grid-template-columns: auto auto;
+    gap:15px;
+}
+
+.bp-pad-label {
+    font-size:12px;
+    color:#666;
 }
 </style>
 </head>
@@ -100,55 +184,9 @@ button{
     </select>
 </div>
 
-<div class="section">
-    <label>造影剤量</label>
-    <input type="number" id="volume" value="60"> cc
-</div>
-
 <hr>
 
 <h3>撮影時条件</h3>
-
-<div class="section">
-    <label>心拍</label>
-    <div class="numeric-input-container">
-        <span class="input-label">開始:</span>
-        <input type="text" id="heartRate1" class="numeric-input" readonly>
-        <span>-</span>
-        <span class="input-label">終了:</span>
-        <input type="text" id="heartRate2" class="numeric-input" readonly>
-        <span>bpm</span>
-    </div>
-    <div class="numeric-pad" id="heartRatePad1"></div>
-</div>
-
-<div class="section">
-    <label>βブロッカー</label>
-    <select id="betaBlocker" onchange="toggleBetaBlockerDetails()">
-        <option>なし</option>
-        <option>あり</option>
-    </select>
-    <div id="betaBlockerDetails" style="display:none; margin-top:15px;">
-        <div style="margin-bottom:10px;">
-            <label>使用前BP:</label>
-            <div class="numeric-input-container">
-                <input type="text" id="bpPre1" class="numeric-input" readonly>
-                <span>/</span>
-                <input type="text" id="bpPre2" class="numeric-input" readonly>
-            </div>
-            <div class="numeric-pad" id="bpPrePad"></div>
-        </div>
-        <div>
-            <label>使用後BP:</label>
-            <div class="numeric-input-container">
-                <input type="text" id="bpPost1" class="numeric-input" readonly>
-                <span>/</span>
-                <input type="text" id="bpPost2" class="numeric-input" readonly>
-            </div>
-            <div class="numeric-pad" id="bpPostPad"></div>
-        </div>
-    </div>
-</div>
 
 <div class="section">
     <label>呼吸止め</label>
@@ -157,6 +195,106 @@ button{
         <option>不良</option>
         <option>不可</option>
     </select>
+</div>
+
+<div class="section">
+    <label>βブロッカー</label>
+    <select id="betaBlocker" onchange="toggleBetaBlockerDetails()">
+        <option>なし</option>
+        <option>あり</option>
+    </select>
+</div>
+
+<hr>
+
+<h3>電卓入力</h3>
+
+<!-- 造影剤量 -->
+<div class="volume-section">
+    <div>
+        <label style="display:block; margin-bottom:5px;">造影剤量</label>
+        <div class="numeric-input-container">
+            <input type="text" id="volume" class="numeric-input" readonly>
+            <span>cc</span>
+        </div>
+    </div>
+    <div class="numeric-pad" id="volumePad"></div>
+</div>
+
+<!-- 心拍 -->
+<div class="heartrate-section">
+    <div class="heartrate-input">
+        <label style="display:block; margin-bottom:5px;">心拍</label>
+        <div class="numeric-input-container">
+            <span class="input-label">前:</span>
+            <input type="text" id="heartRate1" class="numeric-input" readonly>
+            <span>-</span>
+            <span class="input-label">後:</span>
+            <input type="text" id="heartRate2" class="numeric-input" readonly>
+            <span>bpm</span>
+        </div>
+    </div>
+    <div class="heartrate-pads">
+        <div>
+            <div class="heartrate-pad-label">前</div>
+            <div class="numeric-pad" id="heartRatePad1"></div>
+        </div>
+        <div>
+            <div class="heartrate-pad-label">後</div>
+            <div class="numeric-pad" id="heartRatePad2"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 血圧電卓 -->
+<div id="bpPadsContainer" style="display:none; margin-top:20px; margin-bottom:30px;">
+    <div class="bp-section">
+        <div class="bp-label">血圧</div>
+        <div class="bp-content">
+            <!-- 前 -->
+            <div class="bp-row">
+                <div class="bp-input-group">
+                    <div class="bp-input-label">前 (上/下):</div>
+                    <div class="numeric-input-container">
+                        <input type="text" id="bpPre1" class="numeric-input" readonly>
+                        <span>/</span>
+                        <input type="text" id="bpPre2" class="numeric-input" readonly>
+                    </div>
+                </div>
+                <div class="bp-pads">
+                    <div>
+                        <div class="bp-pad-label">上</div>
+                        <div class="numeric-pad" id="bpPrePad1"></div>
+                    </div>
+                    <div>
+                        <div class="bp-pad-label">下</div>
+                        <div class="numeric-pad" id="bpPrePad2"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 後 -->
+            <div class="bp-row">
+                <div class="bp-input-group">
+                    <div class="bp-input-label">後 (上/下):</div>
+                    <div class="numeric-input-container">
+                        <input type="text" id="bpPost1" class="numeric-input" readonly>
+                        <span>/</span>
+                        <input type="text" id="bpPost2" class="numeric-input" readonly>
+                    </div>
+                </div>
+                <div class="bp-pads">
+                    <div>
+                        <div class="bp-pad-label">上</div>
+                        <div class="numeric-pad" id="bpPostPad1"></div>
+                    </div>
+                    <div>
+                        <div class="bp-pad-label">下</div>
+                        <div class="numeric-pad" id="bpPostPad2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <hr>
@@ -193,8 +331,6 @@ button{
 
 <script>
 
-let currentInputField = null;
-
 function createNumericPad(containerId, targetFieldId) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
@@ -229,15 +365,17 @@ function clearInput(fieldId) {
 
 function toggleBetaBlockerDetails() {
     const betaBlocker = document.getElementById("betaBlocker").value;
-    const details = document.getElementById("betaBlockerDetails");
+    const padsContainer = document.getElementById("bpPadsContainer");
     if(betaBlocker === "あり") {
-        details.style.display = "block";
-        if(document.getElementById("bpPrePad").children.length === 0) {
-            createNumericPad("bpPrePad", "bpPre1");
-            createNumericPad("bpPostPad", "bpPost1");
+        padsContainer.style.display = "block";
+        if(document.getElementById("bpPrePad1").children.length === 0) {
+            createNumericPad("bpPrePad1", "bpPre1");
+            createNumericPad("bpPrePad2", "bpPre2");
+            createNumericPad("bpPostPad1", "bpPost1");
+            createNumericPad("bpPostPad2", "bpPost2");
         }
     } else {
-        details.style.display = "none";
+        padsContainer.style.display = "none";
     }
 }
 
@@ -282,14 +420,16 @@ function addStenosis(){
 
 addStenosis();
 
-// 初期化：心拍数パッド作成
+// 初期化：各パッド作成
+createNumericPad("volumePad", "volume");
 createNumericPad("heartRatePad1", "heartRate1");
+createNumericPad("heartRatePad2", "heartRate2");
 
 function generateReport(){
 
     let text = "";
 
-    text += "CT所見\n\n";
+    text += "CT所見【" + document.getElementById("scanner").value + "】\n\n";
 
     text += "撮影時\n";
 
@@ -316,7 +456,9 @@ function generateReport(){
 
     text += "　呼吸止め　　　　" + document.getElementById("breath").value + "\n";
     text += "　使用造影剤　　　" + document.getElementById("contrast").value + "\n";
-    text += "　造影剤使用量　　" + document.getElementById("volume").value + " CC\n\n";
+    
+    const volume = document.getElementById("volume").value;
+    text += "　造影剤使用量　　" + (volume || "60") + " CC\n\n";
 
     const segments = document.querySelectorAll(".stenosis-row");
 
