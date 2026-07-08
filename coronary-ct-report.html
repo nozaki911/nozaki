@@ -203,6 +203,16 @@ button{
         <option>なし</option>
         <option>あり</option>
     </select>
+    <div id="betaBlockerDetails" style="display:none; margin-top:15px;">
+        <div style="margin-bottom:10px;">
+            <label>pre BP:</label>
+            <div class="numeric-input-container">
+                <input type="text" id="bpPreDisplay1" class="numeric-input" readonly>
+                <span>/</span>
+                <input type="text" id="bpPreDisplay2" class="numeric-input" readonly>
+            </div>
+        </div>
+    </div>
 </div>
 
 <hr>
@@ -254,7 +264,7 @@ button{
             <!-- 前 -->
             <div class="bp-row">
                 <div class="bp-input-group">
-                    <div class="bp-input-label">前 (上/下):</div>
+                    <div class="bp-input-label">pre (上/下):</div>
                     <div class="numeric-input-container">
                         <input type="text" id="bpPre1" class="numeric-input" readonly>
                         <span>/</span>
@@ -275,7 +285,7 @@ button{
             <!-- 後 -->
             <div class="bp-row">
                 <div class="bp-input-group">
-                    <div class="bp-input-label">後 (上/下):</div>
+                    <div class="bp-input-label">post (上/下):</div>
                     <div class="numeric-input-container">
                         <input type="text" id="bpPost1" class="numeric-input" readonly>
                         <span>/</span>
@@ -365,8 +375,10 @@ function clearInput(fieldId) {
 
 function toggleBetaBlockerDetails() {
     const betaBlocker = document.getElementById("betaBlocker").value;
+    const details = document.getElementById("betaBlockerDetails");
     const padsContainer = document.getElementById("bpPadsContainer");
     if(betaBlocker === "あり") {
+        details.style.display = "block";
         padsContainer.style.display = "block";
         if(document.getElementById("bpPrePad1").children.length === 0) {
             createNumericPad("bpPrePad1", "bpPre1");
@@ -375,6 +387,7 @@ function toggleBetaBlockerDetails() {
             createNumericPad("bpPostPad2", "bpPost2");
         }
     } else {
+        details.style.display = "none";
         padsContainer.style.display = "none";
     }
 }
@@ -388,21 +401,23 @@ function addStenosis(){
 
     row.innerHTML = `
         <select class="segment">
-            <option>#1</option>
-            <option>#2</option>
-            <option>#3</option>
-            <option>#4</option>
-            <option>#5</option>
-            <option>#6</option>
-            <option>#7</option>
-            <option>#8</option>
-            <option>#9</option>
-            <option>#10</option>
-            <option>#11</option>
-            <option>#12</option>
-            <option>#13</option>
-            <option>#14</option>
-            <option>#15</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+            <option>10</option>
+            <option>HL</option>
+            <option>11</option>
+            <option>12</option>
+            <option>13</option>
+            <option>14</option>
+            <option>15</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4AV</option>
+            <option>4PD</option>
         </select>
 
         <select class="rate">
@@ -445,11 +460,11 @@ function generateReport(){
     const betaBlocker = document.getElementById("betaBlocker").value;
     text += "　βブロッカー　　";
     if(betaBlocker === "あり") {
-        const bpPre1 = document.getElementById("bpPre1").value || "preaaa";
-        const bpPre2 = document.getElementById("bpPre2").value || "bb";
-        const bpPost1 = document.getElementById("bpPost1").value || "postccc";
-        const bpPost2 = document.getElementById("bpPost2").value || "ddd";
-        text += "あり(BP:" + bpPre1 + "/" + bpPre2 + ", post:" + bpPost1 + "/" + bpPost2 + ")\n";
+        const bpPre1 = document.getElementById("bpPre1").value || "xxx";
+        const bpPre2 = document.getElementById("bpPre2").value || "yyy";
+        const bpPost1 = document.getElementById("bpPost1").value || "zzz";
+        const bpPost2 = document.getElementById("bpPost2").value || "www";
+        text += "あり(BP:pre" + bpPre1 + "/" + bpPre2 + ", post" + bpPost1 + "/" + bpPost2 + ")\n";
     } else {
         text += "なし\n";
     }
@@ -466,14 +481,41 @@ function generateReport(){
 
         text += "■冠動脈\n\n";
 
-        segments.forEach(row => {
+        // セグメントをグループに分類
+        const group1 = []; // 5-10
+        const hlGroup = []; // HL
+        const group2 = []; // 11-15
+        const group3 = []; // 1-4AV-4PD
 
+        segments.forEach(row => {
             const seg = row.querySelector(".segment").value;
             const rate = row.querySelector(".rate").value;
+            const item = "#" + seg + ": " + rate;
 
-            text += seg + ":" + rate + "\n\n";
-
+            if(['5','6','7','8','9','10'].includes(seg)) {
+                group1.push(item);
+            } else if(seg === 'HL') {
+                hlGroup.push(item);
+            } else if(['11','12','13','14','15'].includes(seg)) {
+                group2.push(item);
+            } else {
+                group3.push(item);
+            }
         });
+
+        // グループごとに出力
+        if(group1.length > 0) {
+            text += group1.join("\n") + "\n\n";
+        }
+        if(hlGroup.length > 0) {
+            text += hlGroup.join("\n") + "\n\n";
+        }
+        if(group2.length > 0) {
+            text += group2.join("\n") + "\n\n";
+        }
+        if(group3.length > 0) {
+            text += group3.join("\n") + "\n\n";
+        }
 
         text += "程度の狭窄が疑われます\n\n";
     }
@@ -483,7 +525,7 @@ function generateReport(){
     );
 
     findings.forEach(item=>{
-        text += "　" + item.value + "\n";
+        text += item.value + "\n";
     });
 
     if(findings.length > 0){
